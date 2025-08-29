@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colorful Memory Match Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: white;
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            padding: 15px;
+            max-width: 600px;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .instructions p {
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        #game-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+        }
+        
+        .card {
+            width: 100px;
+            height: 100px;
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            font-weight: bold;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+        
+        .card::before {
+            content: '?';
+            position: absolute;
+            font-size: 32px;
+            color: white;
+        }
+        
+        .card.flipped {
+            transform: rotateY(180deg);
+            font-size: 22px;
+        }
+        
+        .card.flipped::before {
+            content: none;
+        }
+        
+        .card.matched {
+            background-color: #2ecc71 !important;
+            cursor: default;
+            transform: scale(0.95);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .game-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            min-width: 200px;
+            height: fit-content;
+        }
+        
+        .score-board {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        #score, #timer {
+            font-size: 24px;
+            color: #2c3e50;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        
+        #startBtn {
+            padding: 12px 30px;
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        #startBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(to right, #c0392b, #e74c3c);
+        }
+        
+        #startBtn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .difficulty {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .difficulty label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
+        footer {
+            margin-top: 30px;
+            color: white;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #game-container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .card {
+                width: 80px;
+                height: 80px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            #game-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+                padding: 15px;
+            }
+            
+            .card {
+                width: 70px;
+                height: 70px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Colorful Memory Match Game</h1>
+        <div class="instructions">
+            <p>Match pairs of colors to earn points. Click on cards to reveal colors and find matching pairs before time runs out!</p>
+            <p>Match all pairs to win the game!</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div id="game-container">
+            <!-- Cards will be generated dynamically using JavaScript -->
+        </div>
+        
+        <div class="game-controls">
+            <div class="score-board">
+                <p id="score">Score: 0</p>
+                <p id="timer">Time Left: 30</p>
+            </div>
+            
+            <button id="startBtn">Start Game</button>
+            
+            <div class="difficulty">
+                <h3>Difficulty:</h3>
+                <label>
+                    <input type="radio" name="difficulty" value="easy" checked> Easy (30s)
+                </label>
+                <label>
+                    <input type="radio" name="difficulty" value="medium"> Medium (20s)
+                </label>
+                <label>
+                    <input type="radio" name="difficulty" value="hard"> Hard (15s)
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>ShailyGujarathi @Memory Match Game 2025</p>
+    </footer>
+
+    <script>
+        // Game data
+        const colors = [
+            'red', 'blue', 'green', 'purple', 'orange', 'pink',
+            'red', 'blue', 'green', 'purple', 'orange', 'pink'
+        ];
+
+        let cards = [];
+        let selectedCards = [];
+        let score = 0;
+        let timeLeft = 30;
+        let gameInterval;
+        let gameStarted = false;
+
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const gameContainer = document.getElementById('game-container');
+        const scoreElement = document.getElementById('score');
+        const timerElement = document.getElementById('timer');
+        const difficultyRadios = document.querySelectorAll('input[name="difficulty"]');
+
+        // Set difficulty
+        function setDifficulty() {
+            for (const radio of difficultyRadios) {
+                if (radio.checked) {
+                    if (radio.value === 'easy') timeLeft = 30;
+                    if (radio.value === 'medium') timeLeft = 20;
+                    if (radio.value === 'hard') timeLeft = 15;
+                    break;
+                }
+            }
+            timerElement.textContent = `Time Left: ${timeLeft}`;
+        }
+
+        // Shuffle function
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Generate cards
+        function generateCards() {
+            gameContainer.innerHTML = "";
+            for (const color of cards) {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.color = color;
+                gameContainer.appendChild(card);
+            }
+        }
+
+        // Handle card click
+        function handleCardClick(event) {
+            if (!gameStarted) return;
+            
+            const card = event.target;
+            
+            if (!card.classList.contains('card') || 
+                card.classList.contains('matched') || 
+                selectedCards.includes(card)) {
+                return;
+            }
+
+            // Reveal card
+            card.classList.add('flipped');
+            card.style.backgroundColor = card.dataset.color;
+            card.textContent = card.dataset.color;
+            selectedCards.push(card);
+
+            // If 2 cards are selected, check for match
+            if (selectedCards.length === 2) {
+                setTimeout(checkMatch, 500);
+            }
+        }
+
+        // Check match
+        function checkMatch() {
+            const [card1, card2] = selectedCards;
+            if (card1.dataset.color === card2.dataset.color) {
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                score += 2;
+                scoreElement.textContent = `Score: ${score}`;
+                
+                // Check if all cards are matched
+                if (document.querySelectorAll('.matched').length === cards.length) {
+                    clearInterval(gameInterval);
+                    setTimeout(() => {
+                        alert('🎉 Congratulations! You won with a score of ' + score);
+                        startBtn.disabled = false;
+                        gameStarted = false;
+                    }, 500);
+                }
+            } else {
+                // Flip back
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+                card1.style.backgroundColor = '#2c3e50';
+                card2.style.backgroundColor = '#2c3e50';
+                card1.textContent = '';
+                card2.textContent = '';
+            }
+            selectedCards = [];
+        }
+
+        // Start game
+        function startGame() {
+            score = 0;
+            setDifficulty();
+            gameStarted = true;
+            scoreElement.textContent = `Score: ${score}`;
+            startBtn.disabled = true;
+
+            // Reset and shuffle
+            cards = shuffle([...colors]);
+            selectedCards = [];
+
+            // Generate new board
+            generateCards();
+
+            // Start timer
+            startGameTimer();
+        }
+
+        // Timer
+        function startGameTimer() {
+            clearInterval(gameInterval);
+            let currentTime = timeLeft;
+            timerElement.textContent = `Time Left: ${currentTime}`;
+
+            gameInterval = setInterval(() => {
+                currentTime--;
+                timerElement.textContent = `Time Left: ${currentTime}`;
+
+                if (currentTime <= 0) {
+                    clearInterval(gameInterval);
+                    gameStarted = false;
+                    alert('⏳ Time\'s up! Your final score is: ' + score);
+                    startBtn.disabled = false;
+                }
+            }, 1000);
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startGame);
+        gameContainer.addEventListener('click', handleCardClick);
+        
+        // Add event listeners to difficulty radios
+        for (const radio of difficultyRadios) {
+            radio.addEventListener('change', setDifficulty);
+        }
+        
+        // Initialize difficulty
+        setDifficulty();
+    </script>
+</body>
+</html>
